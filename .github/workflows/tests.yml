@@ -1,0 +1,116 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e packages/core -e packages/ab ruff mypy vermin==1.9.0
+      - run: ruff check .
+      - run: mypy
+      # nothing newer than the declared minimum, Python 3.8
+      - run: vermin --no-tips --violations -t=3.8- packages/core/src packages/ab/src packages/core/tests packages/ab/tests tools
+      - name: generated files are what the code produces
+        run: |
+          python tools/make_vectors.py --check
+          python tools/make_schemas.py --check
+      - name: every package carries the licenses of the repository
+        run: |
+          for p in packages/*/; do cmp LICENSE "$p/LICENSE" && cmp COMMERCIAL.md "$p/COMMERCIAL.md"; done
+          cmp vectors/LICENSE ts/ab-client/LICENSE
+
+  test:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      # installed, not editable: the tests run against what users get
+      - run: python -m pip install ./packages/core ./packages/ab pyyaml
+      - name: sequentialist-core
+        working-directory: packages/core
+        run: python -W error::ResourceWarning -m unittest discover -s tests -t . -v
+      - name: sequentialist-ab
+        working-directory: packages/ab
+        run: python -W error::ResourceWarning -m unittest discover -s tests -t . -v
+
+  oldest:
+    # Python 3.8 and no optional dependency, from the wheels (setuptools 77, needed to build, needs 3.9)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v6
+      - run: python -m pip install build && python -m build --wheel --outdir dist packages/core && python -m build --wheel --outdir dist packages/ab
+      - run: uv venv --python 3.8 /tmp/old && uv pip install --python /tmp/old/bin/python dist/*.whl
+      - name: sequentialist-core on Python 3.8
+        working-directory: packages/core
+        run: /tmp/old/bin/python -W error::ResourceWarning -m unittest discover -s tests -t . -v
+      - name: sequentialist-ab on Python 3.8
+        working-directory: packages/ab
+        run: /tmp/old/bin/python -W error::ResourceWarning -m unittest discover -s tests -t . -v
+
+  packages:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m pip install build twine
+      - run: python -m build --outdir dist packages/core && python -m build --outdir dist packages/ab
+      - run: python -m twine check --strict dist/*
+      - name: each package installs alone, and they share the namespace
+        run: |
+          python -m venv /tmp/core && /tmp/core/bin/pip install dist/sequentialist_core-*.whl
+          /tmp/core/bin/python -c "import sequentialist.core; import importlib.util as u; assert u.find_spec('sequentialist.ab') is None"
+          python -m venv /tmp/both && /tmp/both/bin/pip install dist/*.whl
+          /tmp/both/bin/python -c "import sequentialist.core, sequentialist.ab; import sequentialist; assert not hasattr(sequentialist, '__file__') or sequentialist.__file__ is None"
+          /tmp/both/bin/sequentialist ab --help
+
+  ab-client:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - working-directory: ts/ab-client
+        run: npm ci && npm test
+      # the built client on the oldest Node.js it supports
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "16"
+      - working-directory: ts/ab-client
+        run: node test/vectors.mjs
+
+  references:
+    # GrowthBook (gbstats) and the mSPRT of Optimizely as independent references, and the example on open data
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"  # gbstats 0.8.0 pins a pandas without wheels for newer Pythons
+      - name: the MineThatData e-mail experiment (Hillstrom 2008), checked against its SHA-256
+        run: |
+          curl -sSfL -o "$RUNNER_TEMP/hillstrom.csv" "http://www.minethatdata.com/Kevin_Hillstrom_MineThatData_E-MailAnalytics_DataMiningChallenge_2008.03.20.csv"
+          echo "0e5893329d8b93cefecc571777672028290ab69865718020c78c7284f291aece  $RUNNER_TEMP/hillstrom.csv" | sha256sum -c
+      - run: python -m pip install ./packages/core ./packages/ab gbstats==0.8.0
+      - working-directory: packages/ab
+        run: HILLSTROM="$RUNNER_TEMP/hillstrom.csv" python -m unittest references.test_references -v
+      - run: python packages/ab/examples/hillstrom.py --data "$RUNNER_TEMP/hillstrom.csv" --out "$RUNNER_TEMP/hillstrom"
