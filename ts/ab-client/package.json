@@ -1,0 +1,24 @@
+{
+  "name": "@sequentialist/ab-client",
+  "version": "0.1.0",
+  "description": "Assignment of units to the variants of an A/B experiment, identical to sequentialist-ab (Python) bit for bit. No dependencies; browsers and Node.js.",
+  "license": "Apache-2.0",
+  "author": "Novikov Laboratories LLC <andrei@hobukob.ru>",
+  "homepage": "https://github.com/andre-a-no/sequentialist/tree/main/ts/ab-client",
+  "repository": { "type": "git", "url": "git+https://github.com/andre-a-no/sequentialist.git", "directory": "ts/ab-client" },
+  "keywords": ["a/b testing", "experiments", "assignment", "feature flags", "bucketing"],
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "files": ["dist/index.js", "dist/index.d.ts", "dist/sha256.js", "dist/sha256.d.ts", "LICENSE", "README.md"],
+  "sideEffects": false,
+  "engines": { "node": ">=16" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node test/vectors.mjs"
+  },
+  "devDependencies": {
+    "typescript": "5.6.3"
+  }
+}

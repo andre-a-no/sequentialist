@@ -1,0 +1,47 @@
+{
+  "kind": "ab.experiment/1",
+  "id": "hillstrom-email",
+  "description": "MineThatData E-Mail Analytics challenge (K. Hillstrom, 2008): 64,000 customers randomised to a men's e-mail, a women's e-mail or no e-mail; visits, purchases and spend in the two weeks after. The arrival of customers over time is simulated; the outcomes are the dataset's.",
+  "salt": "hillstrom-2008",
+  "unit": "customer",
+  "assignment": "external",
+  "variants": [
+    {
+      "name": "no-email",
+      "control": true
+    },
+    {
+      "name": "mens"
+    },
+    {
+      "name": "womens"
+    }
+  ],
+  "attribution_window": "1d",
+  "max_duration": "14d",
+  "alpha": 0.05,
+  "metrics": [
+    {
+      "name": "visit",
+      "type": "conversion",
+      "role": "primary",
+      "event": "visit",
+      "mde": 0.01
+    },
+    {
+      "name": "purchase",
+      "type": "conversion",
+      "event": "purchase"
+    },
+    {
+      "name": "spend",
+      "type": "bounded",
+      "event": "purchase",
+      "value": "amount",
+      "bounds": [
+        0,
+        500
+      ]
+    }
+  ]
+}

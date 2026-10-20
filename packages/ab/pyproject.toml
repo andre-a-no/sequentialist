@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sequentialist-ab"
+dynamic = ["version"]
+description = "Engine of an A/B testing platform: specs, assignment, attribution, anytime-valid analysis with stated guarantees, decisions, audit"
+readme = "README.md"
+license = "AGPL-3.0-only OR LicenseRef-Commercial"  # see COMMERCIAL.md
+license-files = ["LICENSE", "COMMERCIAL.md"]
+requires-python = ">=3.8"
+authors = [{ name = "Andrej Novikov" }]
+maintainers = [{ name = "Novikov Laboratories LLC", email = "andrei@hobukob.ru" }]
+keywords = ["A/B testing", "online experiments", "anytime-valid inference", "sequential testing",
+            "confidence sequence", "e-values", "sample ratio mismatch", "experimentation platform"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Typing :: Typed",
+]
+dependencies = [
+    "sequentialist-core>=0.1,<0.2",
+    "sequential-analysis>=0.4,<0.5",
+]
+
+[project.optional-dependencies]
+yaml = ["sequentialist-core[yaml]>=0.1,<0.2"]
+
+[project.entry-points."sequentialist.commands"]
+ab = "sequentialist.ab.cli:register"
+
+[project.urls]
+Source = "https://github.com/andre-a-no/sequentialist"
+Issues = "https://github.com/andre-a-no/sequentialist/issues"
+"Commercial license" = "https://github.com/andre-a-no/sequentialist/blob/main/COMMERCIAL.md"
+
+[tool.setuptools.dynamic]
+version = { attr = "sequentialist.ab.version.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["sequentialist.ab*"]
+namespaces = true
+
+[tool.setuptools.package-data]
+"sequentialist.ab" = ["py.typed"]

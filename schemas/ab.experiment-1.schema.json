@@ -1,0 +1,661 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/andre-a-no/sequentialist/schemas/ab.experiment-1.schema.json",
+  "title": "ab.experiment/1",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": [
+        "ab.experiment/1"
+      ],
+      "description": "The format of the spec: \"ab.experiment/1\"."
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^(?:[A-Za-z0-9][A-Za-z0-9_.-]{0,127})$",
+      "description": "Identifier of the experiment (names files and tasks)."
+    },
+    "description": {
+      "type": "string",
+      "default": ""
+    },
+    "salt": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "description": "Mixed into the assignment hash; a new salt reshuffles the units."
+    },
+    "unit": {
+      "type": "string",
+      "minLength": 1,
+      "description": "What is randomised. Units arrive as pseudonyms, never as raw ids.",
+      "default": "user"
+    },
+    "variants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^(?:[A-Za-z0-9][A-Za-z0-9_.-]{0,63})$"
+          },
+          "weight": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "default": 1
+          },
+          "control": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name"
+        ]
+      },
+      "minItems": 2,
+      "maxItems": 26,
+      "description": "The arms; exactly one is the control."
+    },
+    "traffic": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "share": {
+            "type": "number",
+            "maximum": 1,
+            "exclusiveMinimum": 0
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "from",
+          "share"
+        ]
+      },
+      "description": "Ramp-up: the share of units in the experiment from each moment on (default 1)."
+    },
+    "assignment": {
+      "type": "string",
+      "enum": [
+        "engine",
+        "external"
+      ],
+      "description": "engine: variants come from this library's hash (ab-client), and exposures are checked against it; external: the platform assigns, and only SRM checks the split.",
+      "default": "engine"
+    },
+    "overrides": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^(?:[A-Za-z0-9][A-Za-z0-9_.-]{0,63})$"
+      },
+      "description": "Manual assignments for QA: unit -> variant. These units are left out of the analysis."
+    },
+    "start": {
+      "anyOf": [
+        {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Exposures before it are not counted; without it, the first exposure starts the clock.",
+      "default": null
+    },
+    "attribution_window": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?\\s*(s|m|h|d|w)$"
+        },
+        {
+          "type": "number",
+          "minimum": 0
+        }
+      ],
+      "description": "Events count while they fall in [exposure, exposure + window)."
+    },
+    "lateness": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?\\s*(s|m|h|d|w)$"
+        },
+        {
+          "type": "number",
+          "minimum": 0
+        }
+      ],
+      "description": "How late events may arrive (by event time) before a window is closed.",
+      "default": 0
+    },
+    "max_duration": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?\\s*(s|m|h|d|w)$"
+        },
+        {
+          "type": "number",
+          "minimum": 0
+        }
+      ],
+      "description": "Exposures are accepted for this long after the start."
+    },
+    "alpha": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "exclusiveMaximum": 0.5,
+      "description": "Error level for claims of an effect, over primary and secondary metrics and variants.",
+      "default": 0.05
+    },
+    "guardrail_alpha": {
+      "anyOf": [
+        {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 0.5
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Error level of non-inferiority claims, over guardrails and variants (default: alpha).",
+      "default": null
+    },
+    "srm": {
+      "type": "object",
+      "properties": {
+        "alpha": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 0.5,
+          "default": 0.001
+        }
+      },
+      "additionalProperties": false,
+      "description": "The sample ratio mismatch check."
+    },
+    "monitoring": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "continuous"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "mode"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "planned"
+            },
+            "looks": {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "maximum": 1,
+                "exclusiveMinimum": 0
+              },
+              "minItems": 1,
+              "description": "Fractions of max_units at which the primary metric is analysed; the last is 1."
+            },
+            "spending": {
+              "type": "string",
+              "enum": [
+                "obrien-fleming",
+                "pocock"
+              ],
+              "default": "obrien-fleming"
+            },
+            "max_units": {
+              "type": "integer",
+              "minimum": 4,
+              "description": "Units of a treatment and the control together at the last look."
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "looks",
+            "max_units"
+          ]
+        }
+      ],
+      "description": "continuous: decide at any moment (anytime-valid); planned: a group sequential design for the primary metric."
+    },
+    "metrics": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "conversion"
+              },
+              "name": {
+                "type": "string",
+                "pattern": "^(?:[a-z][a-z0-9_]{0,63})$",
+                "description": "Name of the metric (lower case, digits, '_')."
+              },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "primary",
+                  "secondary",
+                  "guardrail"
+                ],
+                "description": "primary: decides the experiment; secondary: reported; guardrail: must not get worse.",
+                "default": "secondary"
+              },
+              "direction": {
+                "type": "string",
+                "enum": [
+                  "increase",
+                  "decrease"
+                ],
+                "description": "Which way is good for this metric.",
+                "default": "increase"
+              },
+              "mde": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Minimum detectable effect on the metric's effect scale (needed for the primary metric).",
+                "default": null
+              },
+              "margin": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Guardrails: the harm tolerated, on the metric's effect scale.",
+                "default": null
+              },
+              "event": {
+                "type": "string",
+                "pattern": "^(?:[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127})$",
+                "description": "The unit converts if this event happens in its window."
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "name",
+              "event"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "bounded"
+              },
+              "name": {
+                "type": "string",
+                "pattern": "^(?:[a-z][a-z0-9_]{0,63})$",
+                "description": "Name of the metric (lower case, digits, '_')."
+              },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "primary",
+                  "secondary",
+                  "guardrail"
+                ],
+                "description": "primary: decides the experiment; secondary: reported; guardrail: must not get worse.",
+                "default": "secondary"
+              },
+              "direction": {
+                "type": "string",
+                "enum": [
+                  "increase",
+                  "decrease"
+                ],
+                "description": "Which way is good for this metric.",
+                "default": "increase"
+              },
+              "mde": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Minimum detectable effect on the metric's effect scale (needed for the primary metric).",
+                "default": null
+              },
+              "margin": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Guardrails: the harm tolerated, on the metric's effect scale.",
+                "default": null
+              },
+              "event": {
+                "type": "string",
+                "pattern": "^(?:[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127})$",
+                "description": "Event whose values are summed per unit."
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^(?:[A-Za-z_][A-Za-z0-9_]{0,63})$",
+                "description": "Field of the event holding the value.",
+                "default": "value"
+              },
+              "bounds": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "[lower, upper]: every unit's total is clipped to it; the number clipped is reported."
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "name",
+              "event",
+              "bounds"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "ratio"
+              },
+              "name": {
+                "type": "string",
+                "pattern": "^(?:[a-z][a-z0-9_]{0,63})$",
+                "description": "Name of the metric (lower case, digits, '_')."
+              },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "primary",
+                  "secondary",
+                  "guardrail"
+                ],
+                "description": "primary: decides the experiment; secondary: reported; guardrail: must not get worse.",
+                "default": "secondary"
+              },
+              "direction": {
+                "type": "string",
+                "enum": [
+                  "increase",
+                  "decrease"
+                ],
+                "description": "Which way is good for this metric.",
+                "default": "increase"
+              },
+              "mde": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Minimum detectable effect on the metric's effect scale (needed for the primary metric).",
+                "default": null
+              },
+              "margin": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Guardrails: the harm tolerated, on the metric's effect scale.",
+                "default": null
+              },
+              "numerator": {
+                "type": "object",
+                "properties": {
+                  "event": {
+                    "type": "string",
+                    "pattern": "^(?:[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127})$",
+                    "description": "Name of the event."
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^(?:[A-Za-z_][A-Za-z0-9_]{0,63})$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Field of the event to sum; without it, events are counted.",
+                    "default": null
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "event"
+                ],
+                "description": "Summed per unit into the numerator."
+              },
+              "denominator": {
+                "type": "object",
+                "properties": {
+                  "event": {
+                    "type": "string",
+                    "pattern": "^(?:[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127})$",
+                    "description": "Name of the event."
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^(?:[A-Za-z_][A-Za-z0-9_]{0,63})$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Field of the event to sum; without it, events are counted.",
+                    "default": null
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "event"
+                ],
+                "description": "Summed per unit into the denominator."
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "name",
+              "numerator",
+              "denominator"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "rate"
+              },
+              "name": {
+                "type": "string",
+                "pattern": "^(?:[a-z][a-z0-9_]{0,63})$",
+                "description": "Name of the metric (lower case, digits, '_')."
+              },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "primary",
+                  "secondary",
+                  "guardrail"
+                ],
+                "description": "primary: decides the experiment; secondary: reported; guardrail: must not get worse.",
+                "default": "secondary"
+              },
+              "direction": {
+                "type": "string",
+                "enum": [
+                  "increase",
+                  "decrease"
+                ],
+                "description": "Which way is good for this metric.",
+                "default": "increase"
+              },
+              "mde": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Minimum detectable effect on the metric's effect scale (needed for the primary metric).",
+                "default": null
+              },
+              "margin": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Guardrails: the harm tolerated, on the metric's effect scale.",
+                "default": null
+              },
+              "event": {
+                "type": "string",
+                "pattern": "^(?:[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127})$",
+                "description": "Events counted per unit."
+              },
+              "exposure": {
+                "type": "object",
+                "properties": {
+                  "event": {
+                    "type": "string",
+                    "pattern": "^(?:[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127})$",
+                    "description": "Name of the event."
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^(?:[A-Za-z_][A-Za-z0-9_]{0,63})$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Field of the event to sum; without it, events are counted.",
+                    "default": null
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "event"
+                ],
+                "description": "The unit's exposure (sessions, days): summed, or counted."
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "name",
+              "event",
+              "exposure"
+            ]
+          }
+        ],
+        "description": "A metric; the effect scale depends on its type (see the documentation)."
+      },
+      "minItems": 1
+    },
+    "backend": {
+      "type": "string",
+      "enum": [
+        "python",
+        "numpy"
+      ],
+      "description": "Arithmetic of the betting procedures: python (the same result everywhere) or numpy (faster; needs sequential-analysis[fast] wherever the experiment is opened).",
+      "default": "python"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "id",
+    "salt",
+    "variants",
+    "attribution_window",
+    "max_duration",
+    "metrics"
+  ],
+  "description": "An online controlled experiment."
+}
