@@ -4,4 +4,7 @@ __pycache__/
 build/
 dist/
 .venv/
-/state/
+.mypy_cache/
+.ruff_cache/
+node_modules/
+ts/*/dist/

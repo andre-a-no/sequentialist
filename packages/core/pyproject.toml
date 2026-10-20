@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sequentialist-core"
+dynamic = ["version"]
+description = "Common layer of the sequentialist libraries: specs, a checkpointed engine over sequential-analysis runs, storage, audit log, reports"
+readme = "README.md"
+license = "AGPL-3.0-only OR LicenseRef-Commercial"  # see COMMERCIAL.md
+license-files = ["LICENSE", "COMMERCIAL.md"]
+requires-python = ">=3.8"
+authors = [{ name = "Andrej Novikov" }]
+maintainers = [{ name = "Novikov Laboratories LLC", email = "andrei@hobukob.ru" }]
+keywords = ["sequential analysis", "anytime-valid inference", "audit log", "checkpoint", "reproducibility"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Typing :: Typed",
+]
+# checkpoints (sequential-analysis.checkpoint/2) and procedure identities are part of the stored state:
+# a new minor version of sequential-analysis is adopted deliberately
+dependencies = ["sequential-analysis>=0.4,<0.5"]
+
+[project.optional-dependencies]
+yaml = ["PyYAML>=5.1"]
+
+[project.scripts]
+sequentialist = "sequentialist.core.cli:main"
+
+[project.entry-points."sequentialist.commands"]
+audit = "sequentialist.core.cli:audit_command"
+tasks = "sequentialist.core.cli:tasks_command"
+
+[project.urls]
+Source = "https://github.com/andre-a-no/sequentialist"
+Issues = "https://github.com/andre-a-no/sequentialist/issues"
+"Commercial license" = "https://github.com/andre-a-no/sequentialist/blob/main/COMMERCIAL.md"
+
+[tool.setuptools.dynamic]
+version = { attr = "sequentialist.core.version.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["sequentialist.core*"]
+namespaces = true
+
+[tool.setuptools.package-data]
+"sequentialist.core" = ["py.typed"]
