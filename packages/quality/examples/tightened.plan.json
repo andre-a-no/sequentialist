@@ -1,0 +1,9 @@
+{
+  "kind": "quality.plan/1",
+  "name": "fasteners-tightened",
+  "description": "Tightened inspection: lots of 3 % defective rejected with probability at least 0.95.",
+  "characteristic": {"type": "attributes"},
+  "aql": 0.005,
+  "lq": 0.03,
+  "method": {"type": "sequential", "producer_risk": 0.05, "consumer_risk": 0.05, "max_sample": 500}
+}

@@ -19,8 +19,8 @@ known-first-party = ["sequentialist"]
 
 [tool.mypy]
 python_version = "3.10"  # mypy checks types only; the code runs on 3.8 (see CI)
-mypy_path = "packages/core/src:packages/ab/src"
-files = ["packages/core/src/sequentialist", "packages/ab/src/sequentialist"]
+mypy_path = "packages/core/src:packages/ab/src:packages/quality/src"
+files = ["packages/core/src/sequentialist", "packages/ab/src/sequentialist", "packages/quality/src/sequentialist"]
 namespace_packages = true
 explicit_package_bases = true
 check_untyped_defs = true

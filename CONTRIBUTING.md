@@ -22,9 +22,10 @@ Each library is a separate package under `packages/`; they share the
 `sequentialist` namespace (PEP 420, no `__init__.py` at that level).
 
 ```
-python -m pip install -e packages/core -e packages/ab
+python -m pip install -e packages/core -e packages/ab -e packages/quality
 cd packages/core && python -m unittest discover -s tests -t . && cd ../..
 cd packages/ab && python -m unittest discover -s tests -t . && cd ../..
+cd packages/quality && python -m unittest discover -s tests -t . && cd ../..
 ruff check . && mypy
 cd ts/ab-client && npm ci && npm test
 ```

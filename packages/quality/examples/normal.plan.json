@@ -1,0 +1,9 @@
+{
+  "kind": "quality.plan/1",
+  "name": "fasteners-normal",
+  "description": "Incoming inspection of fasteners by attributes, normal inspection: lots of 1 % defective accepted with probability at least 0.95, lots of 5 % defective rejected with probability at least 0.90.",
+  "characteristic": {"type": "attributes"},
+  "aql": 0.01,
+  "lq": 0.05,
+  "method": {"type": "sequential", "producer_risk": 0.05, "consumer_risk": 0.10, "max_sample": 300}
+}

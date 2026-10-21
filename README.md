@@ -12,7 +12,8 @@ conclusion they report names its guarantee (`exact`, `asymptotic`, `model`,
 | [`sequentialist-core`](packages/core) | `sequentialist.core` | 0.1.0: specs, the checkpointed engine, storage, audit log, reports, simulations |
 | [`sequentialist-ab`](packages/ab) | `sequentialist.ab` | 0.1.0: the engine of an A/B testing platform |
 | [`@sequentialist/ab-client`](ts/ab-client) (npm) | | 0.1.0: assignment of variants in browsers and Node.js, identical to Python |
-| `sequentialist-monitor` | `sequentialist.monitor` | planned: streams of metrics and sensors |
+| [`sequentialist-quality`](packages/quality) | `sequentialist.quality` | 0.1.0: sequential acceptance sampling of lots |
+| `sequentialist-monitor` | `sequentialist.monitor` | planned: equipment, processes and energy |
 | `sequentialist-markets` | `sequentialist.markets` | planned: risk, backtests, strategy decay |
 | `sequentialist-clinical` | `sequentialist.clinical` | planned: trials, drug safety, quality of care |
 | `sequentialist-release` | `sequentialist.release` | planned: canary releases |

@@ -1,0 +1,11 @@
+{
+  "kind": "quality.scheme/1",
+  "id": "fasteners-supplier-a",
+  "description": "Incoming inspection of fasteners from supplier A.",
+  "product": "M8 bolts",
+  "supplier": "Supplier A",
+  "plans": {"normal": "normal.plan.json", "tightened": "tightened.plan.json"},
+  "switching": {"to_tightened": {"rejected": 2, "of": 5}, "to_normal": 5, "discontinue": 5},
+  "resubmission": {"max": 1, "plan": "tightened"},
+  "supplier_watch": {"threshold": 6.0}
+}

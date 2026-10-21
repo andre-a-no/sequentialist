@@ -1,0 +1,9 @@
+{
+  "kind": "quality.plan/1",
+  "name": "fasteners-single",
+  "description": "A classical single sampling plan for comparison: 132 items, accept with at most 3 defective.",
+  "characteristic": {"type": "attributes"},
+  "aql": 0.01,
+  "lq": 0.05,
+  "method": {"type": "single", "sample": 132, "acceptance": 3}
+}
