@@ -1,0 +1,9 @@
+{
+  "kind": "quality.plan/1",
+  "name": "shaft-diameter",
+  "description": "Inspection by variables of a shaft diameter against the upper limit 25.05 mm, measurement standard deviation 0.01 mm known from the process.",
+  "characteristic": {"type": "variables", "limit": "upper", "value": 25.05, "sigma": 0.01},
+  "aql": 0.01,
+  "lq": 0.05,
+  "method": {"type": "sequential", "producer_risk": 0.05, "consumer_risk": 0.10, "max_sample": 60}
+}

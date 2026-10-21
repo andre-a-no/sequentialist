@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sequentialist-quality"
+dynamic = ["version"]
+description = "Sequential acceptance sampling of lots in the setting of Wald: optimal truncated plans with exact operating characteristics, switching rules, resubmission, audit trail and inspection records"
+readme = "README.md"
+license = "AGPL-3.0-only OR LicenseRef-Commercial"  # see COMMERCIAL.md
+license-files = ["LICENSE", "COMMERCIAL.md"]
+requires-python = ">=3.8"
+authors = [{ name = "Andrej Novikov" }]
+maintainers = [{ name = "Novikov Laboratories LLC", email = "andrei@hobukob.ru" }]
+keywords = ["acceptance sampling", "sequential sampling", "SPRT", "Wald", "Kiefer-Weiss", "quality control",
+            "operating characteristic", "lot inspection", "incoming inspection"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Manufacturing",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Typing :: Typed",
+]
+dependencies = [
+    "sequentialist-core>=0.1,<0.2",
+    "sequential-analysis>=0.4,<0.5",
+]
+
+[project.optional-dependencies]
+yaml = ["sequentialist-core[yaml]>=0.1,<0.2"]
+
+[project.entry-points."sequentialist.commands"]
+quality = "sequentialist.quality.cli:register"
+
+[project.urls]
+Source = "https://github.com/andre-a-no/sequentialist"
+Issues = "https://github.com/andre-a-no/sequentialist/issues"
+"Commercial license" = "https://github.com/andre-a-no/sequentialist/blob/main/COMMERCIAL.md"
+
+[tool.setuptools.dynamic]
+version = { attr = "sequentialist.quality.version.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["sequentialist.quality*"]
+namespaces = true
+
+[tool.setuptools.package-data]
+"sequentialist.quality" = ["py.typed"]

@@ -1,0 +1,1008 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/andre-a-no/sequentialist/schemas/quality.scheme-1.schema.json",
+  "title": "quality.scheme/1",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": [
+        "quality.scheme/1"
+      ],
+      "description": "The format of the spec: \"quality.scheme/1\"."
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^(?:[A-Za-z0-9][A-Za-z0-9_.-]{0,127})$",
+      "description": "Identifier of the scheme (names files and tasks)."
+    },
+    "description": {
+      "type": "string",
+      "default": ""
+    },
+    "product": {
+      "type": "string",
+      "description": "What is inspected.",
+      "default": ""
+    },
+    "supplier": {
+      "type": "string",
+      "description": "Who supplies it, if the scheme is per supplier.",
+      "default": ""
+    },
+    "plans": {
+      "type": "object",
+      "properties": {
+        "normal": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^(?:[A-Za-z0-9][A-Za-z0-9_.-]{0,63})$",
+              "description": "Name of the plan."
+            },
+            "description": {
+              "type": "string",
+              "default": ""
+            },
+            "characteristic": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "const": "attributes"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "type"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "const": "nonconformities"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "type"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "const": "variables"
+                    },
+                    "limit": {
+                      "type": "string",
+                      "enum": [
+                        "upper",
+                        "lower"
+                      ],
+                      "description": "Which specification limit."
+                    },
+                    "value": {
+                      "type": "number",
+                      "description": "The specification limit."
+                    },
+                    "sigma": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "description": "The known standard deviation of a measurement."
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "limit",
+                    "value",
+                    "sigma"
+                  ]
+                }
+              ],
+              "description": "What an item gives."
+            },
+            "aql": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Acceptable quality level: fraction defective, nonconformities per item, or fraction beyond the limit."
+            },
+            "lq": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Limiting quality, worse than aql."
+            },
+            "method": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "const": "sequential"
+                    },
+                    "producer_risk": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "exclusiveMaximum": 0.5,
+                      "description": "Largest probability of rejecting a lot of quality aql.",
+                      "default": 0.05
+                    },
+                    "consumer_risk": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "exclusiveMaximum": 0.5,
+                      "description": "Largest probability of accepting a lot of quality lq.",
+                      "default": 0.1
+                    },
+                    "max_sample": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "No lot needs more items than this (truncation)."
+                    },
+                    "optimal_at": {
+                      "type": "string",
+                      "enum": [
+                        "first-order",
+                        "least-favourable"
+                      ],
+                      "description": "Where the average sample number is minimised: Lorden's first-order point, or the least favourable quality (the Kiefer-Weiss test: smallest maximum).",
+                      "default": "first-order"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "max_sample"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "const": "single"
+                    },
+                    "sample": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Items to inspect (n)."
+                    },
+                    "acceptance": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Accept with at most this many defectives (c)."
+                    },
+                    "curtailed": {
+                      "type": "boolean",
+                      "description": "Reject as soon as c + 1 defectives are found (the same decisions, fewer items).",
+                      "default": true
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "sample",
+                    "acceptance"
+                  ]
+                }
+              ],
+              "description": "How the lot is sampled."
+            },
+            "design": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "continuation": {
+                      "type": "array",
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "minItems": 2,
+                        "maxItems": 2
+                      },
+                      "minItems": 1,
+                      "description": "For item n = 1, 2, ...: [lower, upper] of the running sum; accept at or below lower, reject at or above upper, otherwise take another item."
+                    },
+                    "reject_high": {
+                      "type": "boolean",
+                      "description": "True when large sums mean poor quality."
+                    },
+                    "exact": {
+                      "type": "boolean",
+                      "description": "True when the operating characteristic is exact (discrete data)."
+                    },
+                    "procedure": {
+                      "type": "string",
+                      "description": "How the plan was made."
+                    },
+                    "sequential_analysis": {
+                      "type": "string",
+                      "description": "Version of sequential-analysis that computed it."
+                    },
+                    "oc": {
+                      "type": "object",
+                      "properties": {
+                        "aql": {
+                          "type": "object",
+                          "properties": {
+                            "accept": {
+                              "type": "number"
+                            },
+                            "asn": {
+                              "type": "number"
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "accept",
+                            "asn"
+                          ]
+                        },
+                        "lq": {
+                          "type": "object",
+                          "properties": {
+                            "accept": {
+                              "type": "number"
+                            },
+                            "asn": {
+                              "type": "number"
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "accept",
+                            "asn"
+                          ]
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "aql",
+                        "lq"
+                      ],
+                      "description": "Probability of acceptance and average sample number at aql and lq."
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "continuation",
+                    "reject_high",
+                    "exact",
+                    "procedure",
+                    "sequential_analysis",
+                    "oc"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filled in by `sequentialist quality design`.",
+              "default": null
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "quality.plan/1"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "characteristic",
+            "aql",
+            "lq",
+            "method",
+            "kind"
+          ],
+          "description": "The plan of normal inspection (designed)."
+        },
+        "tightened": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "pattern": "^(?:[A-Za-z0-9][A-Za-z0-9_.-]{0,63})$",
+                  "description": "Name of the plan."
+                },
+                "description": {
+                  "type": "string",
+                  "default": ""
+                },
+                "characteristic": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "const": "attributes"
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "type"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "const": "nonconformities"
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "type"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "const": "variables"
+                        },
+                        "limit": {
+                          "type": "string",
+                          "enum": [
+                            "upper",
+                            "lower"
+                          ],
+                          "description": "Which specification limit."
+                        },
+                        "value": {
+                          "type": "number",
+                          "description": "The specification limit."
+                        },
+                        "sigma": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "description": "The known standard deviation of a measurement."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "type",
+                        "limit",
+                        "value",
+                        "sigma"
+                      ]
+                    }
+                  ],
+                  "description": "What an item gives."
+                },
+                "aql": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "description": "Acceptable quality level: fraction defective, nonconformities per item, or fraction beyond the limit."
+                },
+                "lq": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "description": "Limiting quality, worse than aql."
+                },
+                "method": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "const": "sequential"
+                        },
+                        "producer_risk": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "exclusiveMaximum": 0.5,
+                          "description": "Largest probability of rejecting a lot of quality aql.",
+                          "default": 0.05
+                        },
+                        "consumer_risk": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "exclusiveMaximum": 0.5,
+                          "description": "Largest probability of accepting a lot of quality lq.",
+                          "default": 0.1
+                        },
+                        "max_sample": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "description": "No lot needs more items than this (truncation)."
+                        },
+                        "optimal_at": {
+                          "type": "string",
+                          "enum": [
+                            "first-order",
+                            "least-favourable"
+                          ],
+                          "description": "Where the average sample number is minimised: Lorden's first-order point, or the least favourable quality (the Kiefer-Weiss test: smallest maximum).",
+                          "default": "first-order"
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "type",
+                        "max_sample"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "const": "single"
+                        },
+                        "sample": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "description": "Items to inspect (n)."
+                        },
+                        "acceptance": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Accept with at most this many defectives (c)."
+                        },
+                        "curtailed": {
+                          "type": "boolean",
+                          "description": "Reject as soon as c + 1 defectives are found (the same decisions, fewer items).",
+                          "default": true
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "type",
+                        "sample",
+                        "acceptance"
+                      ]
+                    }
+                  ],
+                  "description": "How the lot is sampled."
+                },
+                "design": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "continuation": {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "anyOf": [
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "minItems": 2,
+                            "maxItems": 2
+                          },
+                          "minItems": 1,
+                          "description": "For item n = 1, 2, ...: [lower, upper] of the running sum; accept at or below lower, reject at or above upper, otherwise take another item."
+                        },
+                        "reject_high": {
+                          "type": "boolean",
+                          "description": "True when large sums mean poor quality."
+                        },
+                        "exact": {
+                          "type": "boolean",
+                          "description": "True when the operating characteristic is exact (discrete data)."
+                        },
+                        "procedure": {
+                          "type": "string",
+                          "description": "How the plan was made."
+                        },
+                        "sequential_analysis": {
+                          "type": "string",
+                          "description": "Version of sequential-analysis that computed it."
+                        },
+                        "oc": {
+                          "type": "object",
+                          "properties": {
+                            "aql": {
+                              "type": "object",
+                              "properties": {
+                                "accept": {
+                                  "type": "number"
+                                },
+                                "asn": {
+                                  "type": "number"
+                                }
+                              },
+                              "additionalProperties": false,
+                              "required": [
+                                "accept",
+                                "asn"
+                              ]
+                            },
+                            "lq": {
+                              "type": "object",
+                              "properties": {
+                                "accept": {
+                                  "type": "number"
+                                },
+                                "asn": {
+                                  "type": "number"
+                                }
+                              },
+                              "additionalProperties": false,
+                              "required": [
+                                "accept",
+                                "asn"
+                              ]
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "aql",
+                            "lq"
+                          ],
+                          "description": "Probability of acceptance and average sample number at aql and lq."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "continuation",
+                        "reject_high",
+                        "exact",
+                        "procedure",
+                        "sequential_analysis",
+                        "oc"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Filled in by `sequentialist quality design`.",
+                  "default": null
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "quality.plan/1"
+                  ]
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "characteristic",
+                "aql",
+                "lq",
+                "method",
+                "kind"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The plan of tightened inspection (designed); without it there is no switching.",
+          "default": null
+        },
+        "reduced": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "pattern": "^(?:[A-Za-z0-9][A-Za-z0-9_.-]{0,63})$",
+                  "description": "Name of the plan."
+                },
+                "description": {
+                  "type": "string",
+                  "default": ""
+                },
+                "characteristic": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "const": "attributes"
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "type"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "const": "nonconformities"
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "type"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "const": "variables"
+                        },
+                        "limit": {
+                          "type": "string",
+                          "enum": [
+                            "upper",
+                            "lower"
+                          ],
+                          "description": "Which specification limit."
+                        },
+                        "value": {
+                          "type": "number",
+                          "description": "The specification limit."
+                        },
+                        "sigma": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "description": "The known standard deviation of a measurement."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "type",
+                        "limit",
+                        "value",
+                        "sigma"
+                      ]
+                    }
+                  ],
+                  "description": "What an item gives."
+                },
+                "aql": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "description": "Acceptable quality level: fraction defective, nonconformities per item, or fraction beyond the limit."
+                },
+                "lq": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "description": "Limiting quality, worse than aql."
+                },
+                "method": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "const": "sequential"
+                        },
+                        "producer_risk": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "exclusiveMaximum": 0.5,
+                          "description": "Largest probability of rejecting a lot of quality aql.",
+                          "default": 0.05
+                        },
+                        "consumer_risk": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "exclusiveMaximum": 0.5,
+                          "description": "Largest probability of accepting a lot of quality lq.",
+                          "default": 0.1
+                        },
+                        "max_sample": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "description": "No lot needs more items than this (truncation)."
+                        },
+                        "optimal_at": {
+                          "type": "string",
+                          "enum": [
+                            "first-order",
+                            "least-favourable"
+                          ],
+                          "description": "Where the average sample number is minimised: Lorden's first-order point, or the least favourable quality (the Kiefer-Weiss test: smallest maximum).",
+                          "default": "first-order"
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "type",
+                        "max_sample"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "const": "single"
+                        },
+                        "sample": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "description": "Items to inspect (n)."
+                        },
+                        "acceptance": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Accept with at most this many defectives (c)."
+                        },
+                        "curtailed": {
+                          "type": "boolean",
+                          "description": "Reject as soon as c + 1 defectives are found (the same decisions, fewer items).",
+                          "default": true
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "type",
+                        "sample",
+                        "acceptance"
+                      ]
+                    }
+                  ],
+                  "description": "How the lot is sampled."
+                },
+                "design": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "continuation": {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "anyOf": [
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "minItems": 2,
+                            "maxItems": 2
+                          },
+                          "minItems": 1,
+                          "description": "For item n = 1, 2, ...: [lower, upper] of the running sum; accept at or below lower, reject at or above upper, otherwise take another item."
+                        },
+                        "reject_high": {
+                          "type": "boolean",
+                          "description": "True when large sums mean poor quality."
+                        },
+                        "exact": {
+                          "type": "boolean",
+                          "description": "True when the operating characteristic is exact (discrete data)."
+                        },
+                        "procedure": {
+                          "type": "string",
+                          "description": "How the plan was made."
+                        },
+                        "sequential_analysis": {
+                          "type": "string",
+                          "description": "Version of sequential-analysis that computed it."
+                        },
+                        "oc": {
+                          "type": "object",
+                          "properties": {
+                            "aql": {
+                              "type": "object",
+                              "properties": {
+                                "accept": {
+                                  "type": "number"
+                                },
+                                "asn": {
+                                  "type": "number"
+                                }
+                              },
+                              "additionalProperties": false,
+                              "required": [
+                                "accept",
+                                "asn"
+                              ]
+                            },
+                            "lq": {
+                              "type": "object",
+                              "properties": {
+                                "accept": {
+                                  "type": "number"
+                                },
+                                "asn": {
+                                  "type": "number"
+                                }
+                              },
+                              "additionalProperties": false,
+                              "required": [
+                                "accept",
+                                "asn"
+                              ]
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "aql",
+                            "lq"
+                          ],
+                          "description": "Probability of acceptance and average sample number at aql and lq."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "continuation",
+                        "reject_high",
+                        "exact",
+                        "procedure",
+                        "sequential_analysis",
+                        "oc"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Filled in by `sequentialist quality design`.",
+                  "default": null
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "quality.plan/1"
+                  ]
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "characteristic",
+                "aql",
+                "lq",
+                "method",
+                "kind"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The plan of reduced inspection (designed), if reduced inspection is used.",
+          "default": null
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "normal"
+      ]
+    },
+    "start": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "tightened",
+        "reduced"
+      ],
+      "default": "normal"
+    },
+    "switching": {
+      "type": "object",
+      "properties": {
+        "to_tightened": {
+          "type": "object",
+          "properties": {
+            "rejected": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 2
+            },
+            "of": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 5
+            }
+          },
+          "additionalProperties": false,
+          "description": "Normal to tightened when this many of the last lots were rejected."
+        },
+        "to_normal": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Tightened to normal after this many consecutive accepted lots.",
+          "default": 5
+        },
+        "to_reduced": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Normal to reduced after this many consecutive accepted lots (null: never).",
+          "default": null
+        },
+        "discontinue": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Stop accepting lots when this many are rejected during one period of tightened inspection (null: never); `resume` restarts on tightened.",
+          "default": 5
+        }
+      },
+      "additionalProperties": false
+    },
+    "resubmission": {
+      "type": "object",
+      "properties": {
+        "max": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How often a reworked lot may be presented again.",
+          "default": 1
+        },
+        "plan": {
+          "type": "string",
+          "enum": [
+            "normal",
+            "tightened",
+            "reduced"
+          ],
+          "description": "The plan a resubmitted lot is inspected with.",
+          "default": "tightened"
+        }
+      },
+      "additionalProperties": false
+    },
+    "supplier_watch": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "threshold": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "CUSUM threshold over all items of first presentations, from aql to lq of the normal plan: a lasting deterioration of the supplier, across lots."
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "threshold"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "id",
+    "plans"
+  ],
+  "description": "Inspection of one product or supplier, lot after lot."
+}
